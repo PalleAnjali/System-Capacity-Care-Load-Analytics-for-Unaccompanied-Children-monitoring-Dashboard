@@ -13,7 +13,7 @@ st.set_page_config(page_title="System Capacity & Care Load Analytics for Unaccom
 
 # MAIN DASHBOARD TITLE
 st.title("📊 System Capacity & Care Load Analytics for Unaccompanied Children monitoring Dashboard")
-df = pd.read_csv(r"C:\Users\dell\Care Load Analytics project 2\.vscode\updated HHS_Unaccompanied_Alien_Children_Program.csv")
+df = pd.read_csv(r".vscode/updated HHS_Unaccompanied_Alien_Children_Program.csv")
 df.columns = df.columns.str.strip()
 
 st.markdown(" ")
