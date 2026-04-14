@@ -53,43 +53,47 @@ df["Net_Daily_Intake"] = (
     df["Children transferred out of CBP custody"] -
     df["Children discharged from HHS Care"]
 )
+df["Net_Intake_Pressure"] = (
+    df["Net_Daily_Intake"] /
+    df["Children in HHS Care"]
+)
+df["Total_Children_Under_Care"] = (
+    df["Children in CBP custody"] +
+    df["Children in HHS Care"]
+)
 
-df["Care_Load_Growth_Rate"] = df["Total_System_Load"].pct_change() * 100
-
-df["Backlog_Accumulation_Rate"] = df["Total_System_Load"].rolling(window=7).mean()
 
 # -----------------------------
 # 1. TOTAL CHILDREN UNDER CARE
 # -----------------------------
-total_children_under_care = float(df["Total_System_Load"].iloc[-1])
+total_children_under_care = float(df["Total_Children_Under_Care"].iloc[-1])
 
 # -----------------------------
 # 2. NET INTAKE PRESSURE
 # -----------------------------
-net_intake_pressure = float(df["Net_Daily_Intake"].iloc[-1])
+net_intake_pressure = float(df["Net_Intake_Pressure"].iloc[-1])
 
 # -----------------------------
 # 3. CARE LOAD VOLATILITY INDEX
 # -----------------------------
-care_load_volatility = float(df["Care_Load_Growth_Rate"].std())
+care_load_volatility = float(df["Children in HHS Care"].std())
 
 # -----------------------------
 # 4. BACKLOG ACCUMULATION RATE
 # -----------------------------
-backlog_accumulation = float(df["Backlog_Accumulation_Rate"].iloc[-1])
+backlog_accumulation_rate = (
+    (df["Children in CBP custody"] -
+     df["Children transferred out of CBP custody"]) /
+    df["Children in CBP custody"]
+).iloc[-1]
 
 # -----------------------------
 # 5. DISCHARGE OFFSET RATIO
 # -----------------------------
-total_discharges = df["Children discharged from HHS Care"].sum()
-total_hhs_load = df["Children in HHS Care"].sum()
-
-if total_hhs_load > 0:
-    discharge_offset_ratio = total_discharges / total_hhs_load
-else:
-    discharge_offset_ratio = 0.0
-
-discharge_offset_ratio = float(discharge_offset_ratio)
+discharge_offset_ratio = (
+    df["Children discharged from HHS Care"] /
+    df["Children transferred out of CBP custody"]
+).iloc[-1]
 
 # -----------------------------
 # STREAMLIT KPI DISPLAY
@@ -99,7 +103,7 @@ k1, k2, k3, k4, k5 = st.columns(5)
 k1.metric("Total Children", f"{total_children_under_care:,.0f}")
 k2.metric("Net Intake", f"{net_intake_pressure:,.0f}")
 k3.metric("Volatility", f"{care_load_volatility:,.0f}")
-k4.metric("Backlog Rate", f"{backlog_accumulation:,.0f}")
+k4.metric("Backlog Rate", f"{backlog_accumulation_rate:,.0f}")
 k5.metric("Discharge Ratio", f"{discharge_offset_ratio:,.0f}")
 
 st.divider()
