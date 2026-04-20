@@ -157,7 +157,7 @@ filtered_df["Backlog"] = (
 # -------------------------
 # metric Toggle
 # -------------------------
-st.sidebar.subheader("metric Toggle")
+st.sidebar.subheader("metric selection")
 
 # Metric toggle
 metric = st.sidebar.selectbox(
@@ -192,7 +192,7 @@ with st.container(border=True):
     fig1.update_layout(template="plotly_white")
 
     st.plotly_chart(fig1, width="stretch")
-
+    st.info("Insight: The total system load shows how overall responsibility for unaccompanied children changes over time. Rising trends indicate increasing system pressure.")
     # Data used for chart
 system_load_data = filtered_df[["Date", selected_col]]
 
@@ -223,7 +223,7 @@ with colA:
         fig2.update_layout(template="plotly_white")
 
         st.plotly_chart(fig2, width="stretch")
-
+        st.info("Insight: This chart compares children in CBP custody with those in HHS care, helping understand how responsibilities are distributed between agencies.")
     cbp_hhs_data = filtered_df[
     ["Date", "Children in CBP custody", "Children in HHS Care"]
 ]
@@ -256,6 +256,9 @@ with colB:
          fig3.update_layout(template="plotly_white")
          fig3.add_hline(y=0, line_dash="dash", line_color="gray")
          st.plotly_chart(fig3, width="stretch")
+         st.info("Net Intake: Net intake reflects the difference between arrivals and releases. Positive values indicate increasing system load.")
+         st.info("Backlog Trend: Increasing backlog values indicate periods where system demand exceeds processing capacity, highlighting potential operational pressure."
+)
     flow_data = filtered_df[["Date", "Net_Intake", "Backlog"]]
 
     st.download_button(
@@ -264,4 +267,14 @@ with colB:
     file_name="flow_pressure_metrics.csv",
     mime="text/csv"
     )
+    st.divider()
+    
+st.success("""
+**Key Insights**
+
+• The total system load reflects overall system responsibility across CBP and HHS.  
+• CBP and HHS trends show how custody and care responsibilities shift over time.  
+• Net intake spikes indicate periods of higher arrivals.  
+• Backlog indicators highlight potential capacity constraints.
+""")
 
