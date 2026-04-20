@@ -13,6 +13,7 @@ st.set_page_config(page_title="System Capacity & Care Load Analytics for Unaccom
 
 # MAIN DASHBOARD TITLE
 st.title("📊 System Capacity & Care Load Analytics for Unaccompanied Children monitoring Dashboard")
+st.caption("Interactive dashboard for monitoring system load, intake trends, and capacity indicators.")
 df = pd.read_csv(r".vscode/updated HHS_Unaccompanied_Alien_Children_Program.csv")
 df.columns = df.columns.str.strip()
 
