@@ -194,22 +194,22 @@ with st.container(border=True):
 
     st.plotly_chart(fig1, width="stretch")
     peak_load_date = filtered_df.loc[filtered_df[selected_col].idxmax(), "Date"]
-min_load_date = filtered_df.loc[filtered_df[selected_col].idxmin(), "Date"]
+    min_load_date = filtered_df.loc[filtered_df[selected_col].idxmin(), "Date"]
 
-st.info(f"""
+    st.info(f"""
 📈 Peak system load observed on **{peak_load_date.date()}**, indicating maximum operational pressure.  
 📉 Lowest load recorded on **{min_load_date.date()}**, reflecting reduced system demand.  
 ⚠️ Sustained upward trends signal increasing capacity strain and need for resource scaling.
 """)
-system_load_data = filtered_df[["Date", selected_col]]
+    system_load_data = filtered_df[["Date", selected_col]]
 
 # Download button
-st.download_button(
-    label="📥 Download System Load Data (CSV)",
-    data=system_load_data.to_csv(index=False),
-    file_name="system_load_data.csv",
-    mime="text/csv"
-)
+    st.download_button(
+       label="📥 Download System Load Data (CSV)",
+       data=system_load_data.to_csv(index=False),
+       file_name="system_load_data.csv",
+       mime="text/csv"
+    )
 
 # -------------------------
 # CBP vs HHS COMPARISON
@@ -240,16 +240,15 @@ with colA:
 🚨 If CBP remains higher, it may suggest delays in transfers to HHS care.
 """)
         cbp_hhs_data = filtered_df[
-    ["Date", "Children in CBP custody", "Children in HHS Care"]
-]
+           ["Date", "Children in CBP custody", "Children in HHS Care"]
+        ]
 
         st.download_button(
-    label="📥 Download CBP vs HHS Data (CSV)",
-    data=cbp_hhs_data.to_csv(index=False),
-    file_name="cbp_hhs_comparison.csv",
-    mime="text/csv"
-)
-
+          label="📥 Download CBP vs HHS Data (CSV)",
+          data=cbp_hhs_data.to_csv(index=False),
+          file_name="cbp_hhs_comparison.csv",
+          mime="text/csv"
+        )
 st.divider()
 # =========================
 # NET INTAKE & BACKLOG
@@ -272,34 +271,59 @@ with colB:
          fig3.add_hline(y=0, line_dash="dash", line_color="gray")
          st.plotly_chart(fig3, width="stretch")
          peak_intake_date = filtered_df.loc[filtered_df["Net_Intake"].idxmax(), "Date"]
-peak_backlog_date = filtered_df.loc[filtered_df["Backlog"].idxmax(), "Date"]
+         peak_backlog_date = filtered_df.loc[filtered_df["Backlog"].idxmax(), "Date"]
 
-st.info(f"""
+         st.info(f"""
 📈 Highest net intake observed on **{peak_intake_date.date()}**, indicating surge in incoming children.  
 📊 Backlog peaks on **{peak_backlog_date.date()}**, signaling system congestion.  
 🚨 Simultaneous rise in intake and backlog highlights periods where capacity is exceeded.
 """)
-    flow_data = filtered_df[["Date", "Net_Intake", "Backlog"]]
+         flow_data = filtered_df[["Date", "Net_Intake", "Backlog"]]
 
-    st.download_button(
-    label="📥 Download Net Intake & Backlog Data (CSV)",
-    data=flow_data.to_csv(index=False),
-    file_name="flow_pressure_metrics.csv",
-    mime="text/csv"
-    )
-    st.divider()
+         st.download_button(
+            label="📥 Download Net Intake & Backlog Data (CSV)",
+            data=flow_data.to_csv(index=False),
+            file_name="flow_pressure_metrics.csv",
+            mime="text/csv"
+         )
+st.divider()
     
+# -----------------------------
+# SAFE INSIGHT CALCULATIONS
+# -----------------------------
+if not filtered_df.empty:
+    trend_text = "an increasing trend" if filtered_df[selected_col].iloc[-1] > filtered_df[selected_col].iloc[0] else "a stabilizing/declining trend"
+    
+    backlog_status = (
+        "operational bottlenecks"
+        if filtered_df["Backlog"].iloc[-1] > filtered_df["Backlog"].mean()
+        else "manageable system flow"
+    )
+else:
+    trend_text = "no clear trend (insufficient data)"
+    backlog_status = "insufficient data"
+
+cbp_higher = "transfer delays" if latest_cbp > latest_hhs else "strong processing efficiency"
+
+overall_status = (
+    "requires scaling and faster processing"
+    if backlog_accumulation_rate > 0.2
+    else "is operating within acceptable limits"
+)
+
+# -----------------------------
+# FINAL INSIGHTS
+# -----------------------------
 st.success(f"""
 ### 🔍 Key Analytical Insights
 
-• 📈 System load shows {'an increasing trend' if filtered_df[selected_col].iloc[-1] > filtered_df[selected_col].iloc[0] else 'a stabilizing/declining trend'}, indicating changing demand pressure.  
+• 📈 System load shows **{trend_text}**, indicating changing demand pressure.  
 
-• ⚖️ CBP vs HHS imbalance suggests {'transfer delays' if latest_cbp > latest_hhs else 'strong processing efficiency'}.  
+• ⚖️ CBP vs HHS imbalance suggests **{cbp_higher}**.  
 
 • 📊 Net intake spikes align with backlog growth, highlighting **capacity stress periods**.  
 
-• 🚨 Backlog trends indicate {'operational bottlenecks' if filtered_df['Backlog'].iloc[-1] > filtered_df['Backlog'].mean() else 'manageable system flow'}.  
+• 🚨 Backlog trends indicate **{backlog_status}**.  
 
-• 🎯 Overall, the system {'requires scaling and faster processing' if backlog_accumulation_rate > 0.2 else 'is operating within acceptable limits'}.
+• 🎯 Overall, the system **{overall_status}**.
 """)
-
