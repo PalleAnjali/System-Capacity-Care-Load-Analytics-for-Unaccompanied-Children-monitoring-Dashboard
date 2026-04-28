@@ -193,8 +193,14 @@ with st.container(border=True):
     fig1.update_layout(template="plotly_white")
 
     st.plotly_chart(fig1, width="stretch")
-    st.info("Insight: The total system load shows how overall responsibility for unaccompanied children changes over time. Rising trends indicate increasing system pressure.")
-    # Data used for chart
+    peak_load_date = filtered_df.loc[filtered_df[selected_col].idxmax(), "Date"]
+min_load_date = filtered_df.loc[filtered_df[selected_col].idxmin(), "Date"]
+
+st.info(f"""
+📈 Peak system load observed on **{peak_load_date.date()}**, indicating maximum operational pressure.  
+📉 Lowest load recorded on **{min_load_date.date()}**, reflecting reduced system demand.  
+⚠️ Sustained upward trends signal increasing capacity strain and need for resource scaling.
+""")
 system_load_data = filtered_df[["Date", selected_col]]
 
 # Download button
@@ -224,7 +230,16 @@ with colA:
         fig2.update_layout(template="plotly_white")
 
         st.plotly_chart(fig2, width="stretch")
-        st.info("Insight: This chart compares children in CBP custody with those in HHS care, helping understand how responsibilities are distributed between agencies.")
+        latest_cbp = filtered_df["Children in CBP custody"].iloc[-1]
+latest_hhs = filtered_df["Children in HHS Care"].iloc[-1]
+
+dominant = "CBP" if latest_cbp > latest_hhs else "HHS"
+
+st.info(f"""
+⚖️ Latest data shows **{dominant}** handling a larger share of children.  
+📊 Persistent gaps between CBP and HHS indicate imbalance in system distribution.  
+🚨 If CBP remains higher, it may suggest delays in transfers to HHS care.
+""")
     cbp_hhs_data = filtered_df[
     ["Date", "Children in CBP custody", "Children in HHS Care"]
 ]
@@ -257,9 +272,14 @@ with colB:
          fig3.update_layout(template="plotly_white")
          fig3.add_hline(y=0, line_dash="dash", line_color="gray")
          st.plotly_chart(fig3, width="stretch")
-         st.info("Net Intake: Net intake reflects the difference between arrivals and releases. Positive values indicate increasing system load.")
-         st.info("Backlog Trend: Increasing backlog values indicate periods where system demand exceeds processing capacity, highlighting potential operational pressure."
-)
+         peak_intake_date = filtered_df.loc[filtered_df["Net_Intake"].idxmax(), "Date"]
+peak_backlog_date = filtered_df.loc[filtered_df["Backlog"].idxmax(), "Date"]
+
+st.info(f"""
+📈 Highest net intake observed on **{peak_intake_date.date()}**, indicating surge in incoming children.  
+📊 Backlog peaks on **{peak_backlog_date.date()}**, signaling system congestion.  
+🚨 Simultaneous rise in intake and backlog highlights periods where capacity is exceeded.
+""")
     flow_data = filtered_df[["Date", "Net_Intake", "Backlog"]]
 
     st.download_button(
@@ -270,12 +290,17 @@ with colB:
     )
     st.divider()
     
-st.success("""
-**Key Insights**
+st.success(f"""
+### 🔍 Key Analytical Insights
 
-• The total system load reflects overall system responsibility across CBP and HHS.  
-• CBP and HHS trends show how custody and care responsibilities shift over time.  
-• Net intake spikes indicate periods of higher arrivals.  
-• Backlog indicators highlight potential capacity constraints.
+• 📈 System load shows {'an increasing trend' if filtered_df[selected_col].iloc[-1] > filtered_df[selected_col].iloc[0] else 'a stabilizing/declining trend'}, indicating changing demand pressure.  
+
+• ⚖️ CBP vs HHS imbalance suggests {'transfer delays' if latest_cbp > latest_hhs else 'strong processing efficiency'}.  
+
+• 📊 Net intake spikes align with backlog growth, highlighting **capacity stress periods**.  
+
+• 🚨 Backlog trends indicate {'operational bottlenecks' if filtered_df['Backlog'].iloc[-1] > filtered_df['Backlog'].mean() else 'manageable system flow'}.  
+
+• 🎯 Overall, the system {'requires scaling and faster processing' if backlog_accumulation_rate > 0.2 else 'is operating within acceptable limits'}.
 """)
 
