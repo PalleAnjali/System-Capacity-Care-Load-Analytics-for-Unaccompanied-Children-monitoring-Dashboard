@@ -288,78 +288,78 @@ with colB:
          )
 st.divider()
     
-# -----------------------------
-# SAFE INSIGHT CALCULATIONS
-# -----------------------------
-# -----------------------------
-# DYNAMIC TREND CALCULATION
-# -----------------------------
 if not filtered_df.empty:
 
-    # Recent trend (more dynamic than first vs last)
-    if len(filtered_df) > 7:
-        recent_trend = filtered_df[selected_col].iloc[-1] - filtered_df[selected_col].iloc[-7]
-    else:
-        recent_trend = filtered_df[selected_col].iloc[-1] - filtered_df[selected_col].iloc[0]
-
-    # % Change
     first_val = filtered_df[selected_col].iloc[0]
     last_val = filtered_df[selected_col].iloc[-1]
 
-    if first_val != 0:
-        pct_change = ((last_val - first_val) / first_val) * 100
-    else:
-        pct_change = 0
+    # % change
+    pct_change = ((last_val - first_val) / first_val * 100) if first_val != 0 else 0
 
     # Trend text
-    if recent_trend > 0:
-        trend_text = f"an upward trend (↑ {pct_change:.1f}%)"
+    if pct_change > 2:
+        trend_text = f"strong growth (↑ {pct_change:.1f}%)"
+    elif pct_change < -2:
+        trend_text = f"decline (↓ {abs(pct_change):.1f}%)"
     else:
-        trend_text = f"a downward/stable trend (↓ {abs(pct_change):.1f}%)"
+        trend_text = f"stable trend (~ {pct_change:.1f}%)"
 
-    # Intake pressure
-    if filtered_df["Net_Intake"].iloc[-1] > 0:
-        intake_text = "intake is exceeding discharge capacity"
-    else:
-        intake_text = "discharges are balancing or exceeding intake"
-
-    # Backlog status
-    if filtered_df["Backlog"].iloc[-1] > filtered_df["Backlog"].mean():
-        backlog_text = "rising backlog pressure indicating system stress"
-    else:
-        backlog_text = "controlled backlog levels indicating stable flow"
+    # Latest values
+    latest_cbp = filtered_df["Children in CBP custody"].iloc[-1]
+    latest_hhs = filtered_df["Children in HHS Care"].iloc[-1]
 
     # CBP vs HHS
-    if latest_cbp > latest_hhs:
-        cbp_text = "CBP is overloaded, suggesting delays in transfer to HHS"
+    gap = latest_cbp - latest_hhs
+    if gap > 0:
+        cbp_text = f"CBP is handling {abs(gap):,.0f} more children than HHS, indicating transfer delays"
     else:
-        cbp_text = "HHS is effectively absorbing and managing incoming cases"
+        cbp_text = f"HHS is managing {abs(gap):,.0f} more children, indicating efficient transfers"
+
+    # Net intake
+    net_latest = filtered_df["Net_Intake"].iloc[-1]
+    if net_latest > 0:
+        intake_text = f"net intake is positive (+{net_latest:.0f}), meaning inflow exceeds outflow"
+    else:
+        intake_text = f"net intake is negative ({net_latest:.0f}), meaning discharges are keeping pace"
+
+    # Backlog
+    backlog_latest = filtered_df["Backlog"].iloc[-1]
+    backlog_avg = filtered_df["Backlog"].mean()
+
+    if backlog_latest > backlog_avg:
+        backlog_text = f"backlog is above average ({backlog_latest:.0f}), indicating system stress"
+    else:
+        backlog_text = f"backlog is below average ({backlog_latest:.0f}), indicating stable operations"
+
+    # Overall (FIXED USING FILTERED DATA)
+    latest_transfer = filtered_df["Children transferred out of CBP custody"].iloc[-1]
+
+    if latest_cbp != 0:
+        backlog_rate = (latest_cbp - latest_transfer) / latest_cbp
+    else:
+        backlog_rate = 0
+
+    if backlog_rate > 0.2:
+        overall_text = "under pressure and requires scaling"
+    else:
+        overall_text = "operating within acceptable limits"
 
 else:
-    trend_text = "no clear trend"
-    intake_text = "insufficient data"
-    backlog_text = "insufficient data"
-    cbp_text = "insufficient data"
+    trend_text = cbp_text = intake_text = backlog_text = overall_text = "No data available"
 
-# Overall system
-if backlog_accumulation_rate > 0.2:
-    overall_text = "requires immediate capacity expansion and faster processing"
-else:
-    overall_text = "is operating within manageable capacity limits"
-
-# -----------------------------
-# FINAL INSIGHTS
-# -----------------------------
+# -------------------------
+# DISPLAY INSIGHTS
+# -------------------------
 st.success(f"""
 ### 🔍 Key Analytical Insights
 
-• 📈 **System Behavior:** The system shows **{trend_text}**, reflecting how demand is evolving over the selected period.  
+• 📈 **System Trend:** The system shows **{trend_text}**.  
 
 • ⚖️ **Load Distribution:** {cbp_text}.  
 
-• 📊 **Flow Efficiency:** Current trends indicate that **{intake_text}**, directly influencing system congestion.  
+• 📊 **Flow Status:** {intake_text}.  
 
-• 🚨 **Backlog Condition:** The system is experiencing **{backlog_text}**, highlighting operational pressure.  
+• 🚨 **Backlog Condition:** {backlog_text}.  
 
-• 🎯 **Overall Assessment:** The system **{overall_text}**.
+• 🎯 **Overall Assessment:** The system is **{overall_text}**.
 """)
