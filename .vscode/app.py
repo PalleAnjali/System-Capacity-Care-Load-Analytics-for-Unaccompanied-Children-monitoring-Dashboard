@@ -231,20 +231,19 @@ with colA:
 
         st.plotly_chart(fig2, width="stretch")
         latest_cbp = filtered_df["Children in CBP custody"].iloc[-1]
-latest_hhs = filtered_df["Children in HHS Care"].iloc[-1]
+        latest_hhs = filtered_df["Children in HHS Care"].iloc[-1]
+        dominant = "CBP" if latest_cbp > latest_hhs else "HHS"
 
-dominant = "CBP" if latest_cbp > latest_hhs else "HHS"
-
-st.info(f"""
+        st.info(f"""
 ⚖️ Latest data shows **{dominant}** handling a larger share of children.  
 📊 Persistent gaps between CBP and HHS indicate imbalance in system distribution.  
 🚨 If CBP remains higher, it may suggest delays in transfers to HHS care.
 """)
-    cbp_hhs_data = filtered_df[
+        cbp_hhs_data = filtered_df[
     ["Date", "Children in CBP custody", "Children in HHS Care"]
 ]
 
-    st.download_button(
+        st.download_button(
     label="📥 Download CBP vs HHS Data (CSV)",
     data=cbp_hhs_data.to_csv(index=False),
     file_name="cbp_hhs_comparison.csv",
